@@ -107,6 +107,8 @@ jobs:
             # 실패인데 값이 남아 있으면 실패한 배포가 성공한 것처럼 보인다
             if [ "$JOB_STATUS" != "success" ]; then
               PAGE_URL=""
+            elif [ -z "$PAGE_URL" ]; then
+              PAGE_URL="$RUN_URL"
             fi
 
             cat > payload.json <<EOF
