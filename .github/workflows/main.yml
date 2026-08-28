@@ -1,7 +1,7 @@
 name: Deploy HTML to GitHub Pages
-  run-name: 배포 ${{ inputs.deployment_ticket_id }} (${{ inputs.environment }})
+run-name: 배포 ${{ inputs.deployment_ticket_id }} (${{ inputs.environment }})
 
-  on:
+on:
     workflow_dispatch:   # 수동 실행 전용
       inputs:
         deployment_ticket_id:
