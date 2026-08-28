@@ -21,10 +21,10 @@ on:
           required: false
           default: '수동 배포'
 
-  permissions:
+permissions:
     contents: read
 
-  jobs:
+jobs:
     deploy:
       runs-on: ubuntu-latest
       steps:
@@ -69,9 +69,9 @@ on:
             echo "배포 SHA: $COMMIT_SHA"
             echo "배포 이유: $REASON"
 
-        # ▼▼▼ PMS 배포 결과 콜백 ▼▼▼
+        # PMS 배포 결과 콜백
         # 이 스텝이 실패하면 PMS 의 배포 건은 'ING' 로 남는다. PMS 는 인증에 실패한 콜백을
-        # FAILED 로 기록하지 않는다 — 티켓번호만 알면 남의 배포 상태를 바꿀 수 있게 되기 때문이다.
+        # FAILED 로 기록하지 않는다 - 티켓번호만 알면 남의 배포 상태를 바꿀 수 있게 되기 때문이다.
         # 그래서 설정이 어긋난 것은 여기서 붉게 드러나야 하고, 고친 뒤 Re-run jobs 로 재전송한다.
         - name: PMS 배포 결과 콜백
           if: always()   # 성공·실패 모두 전송
@@ -80,7 +80,7 @@ on:
             PMS_TOKEN: ${{ secrets.PMS_CALLBACK_TOKEN }}
             # 배포 결과 페이지. 미설정이면 빈 값으로 나간다(= 기존 동작과 동일)
             # 실제 Pages 배포 스텝(actions/deploy-pages)을 넣으면
-            # ${{ steps.deployment.outputs.page_url }} 로 바꾸면 된다
+            # steps.deployment.outputs.page_url 로 바꾸면 된다
             PAGE_URL: ${{ vars.PMS_PAGE_URL }}
             TICKET_ID: ${{ inputs.deployment_ticket_id }}
             ENVIRONMENT: ${{ inputs.environment }}
@@ -91,8 +91,8 @@ on:
             RUN_ID: ${{ github.run_id }}
             RUN_NUMBER: ${{ github.run_number }}
           run: |
-            # ── ① 설정 누락을 조용히 넘기지 않는다 ─────────────────────────────
-            # secret·variable 이 없으면 GitHub 은 경고 없이 빈 문자열로 치환한다.
+            # (1) 설정 누락을 조용히 넘기지 않는다
+            # secret, variable 이 없으면 GitHub 은 경고 없이 빈 문자열로 치환한다.
             # 그대로 보내면 PMS 가 401 로 거부하고 배포 건이 ING 로 남는다
             if [ -z "$PMS_CALLBACK_URL" ]; then
               echo "::error::레포 variable PMS_CALLBACK_URL 이 설정되지 않았다"
@@ -103,7 +103,7 @@ on:
               exit 1
             fi
 
-            # ── ② 결과 페이지 URL 은 성공했을 때만 ──────────────────────────────
+            # (2) 결과 페이지 URL 은 성공했을 때만
             # 실패인데 값이 남아 있으면 실패한 배포가 성공한 것처럼 보인다
             if [ "$JOB_STATUS" != "success" ]; then
               PAGE_URL=""
@@ -125,7 +125,7 @@ on:
             echo "콜백 전송: $PMS_CALLBACK_URL"
             cat payload.json
 
-            # ── ③ 상태코드와 응답 본문을 남긴다 ────────────────────────────────
+            # (3) 상태코드와 응답 본문을 남긴다
             # -f 를 쓰면 curl 이 응답 본문을 버려서 401 인지 500 인지 서버 로그를 봐야 한다
             HTTP=$(curl -sS -X POST "$PMS_CALLBACK_URL" \
               --retry 3 --retry-connrefused --retry-delay 5 --max-time 60 \
@@ -147,7 +147,7 @@ on:
                 echo "::error::PMS 콜백 거부(500). PMS 서버에 SCM_DEPLOY_CALLBACK_TOKEN 이 설정되지 않았을 수 있다"
                 exit 1 ;;
               ''|000)
-                echo "::error::PMS 콜백 서버에 접속하지 못했다. URL·방화벽 확인: $PMS_CALLBACK_URL"
+                echo "::error::PMS 콜백 서버에 접속하지 못했다. URL, 방화벽 확인: $PMS_CALLBACK_URL"
                 exit 1 ;;
               *)
                 echo "::error::PMS 콜백 실패 HTTP $HTTP"
